@@ -1,5 +1,5 @@
 # This workflow file automates the process of building and deploying
-# your Quarto website to GitHub Pages whenever you make changes. 
+# your Quarto website to GitHub Pages whenever you make changes.  
 
 # --- Workflow Metadata ---
 name: Deploy Quarto Website
@@ -7,38 +7,40 @@ name: Deploy Quarto Website
 # --- Trigger Events ---
 on:  
   push:
-    branches:  [main]
-  workflow_dispatch:
+    branches: [main]
+  workflow_dispatch: 
 
 # --- Permissions ---
 permissions:
-  contents: write
+  contents:  write
   pages: write
   id-token: write
 
 # --- Concurrency Control ---
-concurrency: 
+concurrency:  
   group: "pages"
   cancel-in-progress: true
 
 # --- Job Definition ---
-jobs: 
+jobs:  
   deploy:
     runs-on: ubuntu-latest
-    steps:
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps: 
       # --- Step 1: Get Code ---
       - name: Check out repository
-        uses:  actions/checkout@v4
+        uses: actions/checkout@v4
 
       # --- Step 2: Install System Dependencies ---
-      - name:  Install pandoc
+      - name: Install pandoc
         run: sudo apt-get update && sudo apt-get install -y pandoc
 
       # --- Step 3: Setup Quarto ---
-      - name:  Set up Quarto
+      - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
-        with: 
-          version:  1.6.42
+        with:  
+          version: 1.6.42
 
       # --- Step 4: Setup R with RSPM ---
       - name: Setup R
@@ -47,51 +49,50 @@ jobs:
           r-version: '4.5.1'
           use-public-rspm: true
 
-      # --- Step 5: Install and Cache R dependencies (AUTOMÁTICO) ---
-      # Esta action gerencia cache automaticamente!
-      - name: Install and Cache R dependencies
-        uses:  r-lib/actions/setup-r-dependencies@v2
+      # --- Step 5: Setup renv (gerencia cache automaticamente) ---
+      - name: Setup renv and restore packages
+        uses: r-lib/actions/setup-renv@v2
         with:
           cache-version: 2
-          extra-packages: |
-            any:: knitr
-            any::rmarkdown
-            any::ggplot2
-            any::tinytex
 
-      # --- Step 6: Cache TinyTeX ---
-      - name:  Cache TinyTeX
-        uses:  actions/cache@v4
+      # --- Step 6: Install additional packages if needed ---
+      - name: Install additional R packages
+        run: |
+          Rscript -e 'if (!require("ggplot2")) install.packages("ggplot2")'
+
+      # --- Step 7: Cache TinyTeX ---
+      - name: Cache TinyTeX
+        uses: actions/cache@v4
         with:
-          path:  ~/. TinyTeX
+          path:  ~/.TinyTeX
           key: ${{ runner.os }}-tinytex-${{ hashFiles('**/*.qmd') }}
           restore-keys: |
-            ${{ runner.os }}-tinytex-
+            ${{ runner. os }}-tinytex-
 
-      # --- Step 7: Install TinyTeX ---
-      - name: Install TinyTeX
-        run: |
-          Rscript -e 'if (! tinytex::is_tinytex()) tinytex::install_tinytex()'
+      # --- Step 8: Install TinyTeX ---
+      - name:  Install TinyTeX
+        run:  |
+          Rscript -e 'if (!tinytex:: is_tinytex()) tinytex::install_tinytex()'
 
-      # --- Step 8: Cache Quarto ---
-      - name: Cache Quarto
-        uses: actions/cache@v4
+      # --- Step 9: Cache Quarto ---
+      - name:  Cache Quarto
+        uses:  actions/cache@v4
         with:
           path: |
             . quarto
             _freeze
-          key: ${{ runner.os }}-quarto-${{ hashFiles('**/*. qmd') }}
+          key: ${{ runner.os }}-quarto-${{ hashFiles('**/*.qmd') }}
           restore-keys: |
-            ${{ runner.os }}-quarto-
+            ${{ runner. os }}-quarto-
 
-      # --- Step 9: Render Website ---
-      - name:  Render Quarto Website
+      # --- Step 10: Render Website ---
+      - name: Render Quarto Website
         run: quarto render
 
-      # --- Step 10: Deploy to GitHub Pages ---
-      - name: Publish to GitHub Pages
+      # --- Step 11: Deploy to GitHub Pages ---
+      - name:  Publish to GitHub Pages
         uses: quarto-dev/quarto-actions/publish@v2
         with:
-          target:  gh-pages
-        env: 
+          target: gh-pages
+        env:  
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
