@@ -48,7 +48,6 @@ jobs:
           use-public-rspm: true  # IMPORTANTE: usa binários ao invés de compilar! 
 
       # --- Step 5: Cache de Pacotes R ---
-      # CRÍTICO: Deve vir ANTES da instalação dos pacotes!
       - name:  Cache R packages
         uses: actions/cache@v4
         with:
@@ -58,7 +57,6 @@ jobs:
             ${{ runner.os }}-r-4.5.1-
 
       # --- Step 6: Install R Packages ---
-      # Agora com verificação se já estão instalados (via cache)
       - name: Install knitr, rmarkdown and ggplot2
         run: |
           Rscript -e '
