@@ -3,7 +3,7 @@
 
 # --- Workflow Metadata ---
 # Give the workflow a descriptive name that appears on GitHub
-name: Deploy Quarto Website
+name: Deploy ARTE Template
 
 # --- Trigger Events ---
 # Define when this workflow should run automatically
